@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Google</title>
+<link id="favicon" rel="icon" href="https://www.google.com/favicon.ico">
+<style>
+  :root{
+    --bg:#0d0e12; --panel:#15171f;
+    --border:rgba(255,255,255,0.10); --border2:rgba(255,255,255,0.18);
+    --text:#e2e4ef; --muted:#7c8194; --dim:#4a4f63;
+    --accent:#7c6dfa; --accent2:#3b82f6; --accent-rgb:124,109,250;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    font-family:'Geist',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    color:var(--text);padding:24px;
+    background:
+      radial-gradient(1000px 700px at 80% -10%,#1b2440 0%,transparent 55%),
+      radial-gradient(900px 600px at 10% 110%,#2a1b40 0%,transparent 55%),
+      var(--bg);
+  }
+  .card{
+    width:100%;max-width:480px;background:rgba(255,255,255,0.04);
+    border:1px solid var(--border);border-radius:18px;padding:28px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.55),inset 0 1px 0 rgba(255,255,255,0.06);
+    backdrop-filter:blur(20px);
+  }
+  .title{font-size:20px;font-weight:600;letter-spacing:.01em}
+  .sub{font-size:12.5px;color:var(--muted);margin-top:5px;line-height:1.5}
+
+  .grid{
+    margin-top:22px;display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(58px,1fr));
+    gap:12px;
+  }
+  .site{
+    position:relative;aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;
+    background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:12px;
+    cursor:pointer;transition:transform .12s, border-color .12s, background .12s, box-shadow .12s;
+  }
+  .site:hover{
+    transform:translateY(-2px);background:rgba(255,255,255,0.06);
+    border-color:var(--border2);box-shadow:0 8px 20px rgba(0,0,0,0.35);
+  }
+  .site.selected{
+    border-color:rgba(var(--accent-rgb),0.6);
+    box-shadow:0 0 0 3px rgba(var(--accent-rgb),0.2);
+    background:rgba(var(--accent-rgb),0.08);
+  }
+  .site img{width:30px;height:30px;border-radius:6px;pointer-events:none}
+  /* tooltip */
+  .site::after{
+    content:attr(data-name);
+    position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
+    background:#000;color:#fff;font-size:11px;font-weight:500;white-space:nowrap;
+    padding:4px 8px;border-radius:6px;opacity:0;pointer-events:none;
+    transition:opacity .12s;z-index:5;
+  }
+  .site:hover::after{opacity:1}
+
+  .launch{
+    margin-top:22px;width:100%;height:44px;border:none;border-radius:11px;cursor:pointer;
+    font-family:inherit;font-size:13.5px;font-weight:600;color:#fff;letter-spacing:.01em;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    transition:filter .15s, transform .1s;
+  }
+  .launch:hover{filter:brightness(1.1)}
+  .launch:active{transform:scale(.98)}
+  .launch:disabled{opacity:.45;cursor:not-allowed;filter:none}
+  .explain{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:14px}
+  .explain-row{font-size:11.5px;color:var(--muted);line-height:1.6;display:flex;flex-direction:column;gap:4px}
+  .explain-tag{display:inline-block;width:fit-content;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:.02em}
+  .tag-a{background:rgba(124,109,250,0.15);color:#a89bff}
+  .tag-b{background:rgba(74,222,128,0.15);color:#7ee2a0}
+  .explain-row code{background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-size:10.5px}
+  .bullet-list {margin-top:2px;padding-left:4px;display:flex;flex-direction:column;gap:2px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="title">NovOS</div>
+    <div class="sub">Select a Cloak</div>
+
+    <div class="grid" id="grid"></div>
+
+    <button class="launch" id="launchBtn" disabled>Select Cloak First</button>
+  </div>
+
+  <script>
+    const SITES = [
+      { name:'Google',           title:'Google',                                 icon:'https://www.google.com/favicon.ico' },
+      { name:'Google Classroom', title:'Classes',                                icon:'https://ssl.gstatic.com/classroom/favicon.png' },
+      { name:'Google Docs',      title:'Untitled document - Google Docs',        icon:'https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico' },
+      { name:'Google Drive',     title:'My Drive - Google Drive',                icon:'https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png' },
+      { name:'Gmail',            title:'Inbox - Gmail',                          icon:'https://ssl.gstatic.com/ui/v1/icons/mail/rfr/gmail.ico' },
+      { name:'Google Slides',    title:'Untitled presentation - Google Slides',  icon:'https://ssl.gstatic.com/docs/presentations/images/favicon5.ico' },
+      { name:'Google Sheets',    title:'Untitled spreadsheet - Google Sheets',   icon:'https://ssl.gstatic.com/docs/spreadsheets/favicon3.ico' },
+      { name:'Wikipedia',        title:'Wikipedia',                              icon:'https://www.wikipedia.org/static/favicon/wikipedia.ico' },
+      { name:'Khan Academy',     title:'Khan Academy',                           icon:'https://cdn.kastatic.org/images/favicon.ico' },
+      { name:'Clever',           title:'Clever | Portal',                        icon:'https://www.clever.com/wp-content/uploads/2023/06/cropped-Favicon-512px-192x192.png' },
+      { name:'Canvas',           title:'Dashboard',                              icon:'https://du11hjcvx0uqb.cloudfront.net/dist/images/favicon-e10d657a73.ico' },
+      { name:'Quizlet',          title:'Quizlet',                                icon:'https://quizlet.com/favicon.ico' },
+    ];
+
+    const DEFAULT_RAW_URL = 'https://raw.githubusercontent.com/riaannn/NovOS/refs/heads/main/index.html';
+
+    const _params  = new URLSearchParams(location.search);
+    const RAW_URL  = _params.get('rawURL') || _params.get('rawUrl') || _params.get('url') || DEFAULT_RAW_URL;
+    const RAW_HTML = _params.get('__rawhtml__') || '';
+
+    const HAS_TARGET = (RAW_HTML && RAW_HTML.trim()) || (RAW_URL && RAW_URL.trim());
+
+    let selected = null;
+
+    function baseDirOf(url){
+      try {
+        const u = new URL(url);
+        u.search = ''; u.hash = '';
+        u.pathname = u.pathname.replace(/[^/]*$/, '');
+        return u.href;
+      } catch (e){ return ''; }
+    }
+
+    function injectBase(html, href){
+      if (!href) return html;
+      const baseTag = `<base href="${href.replace(/"/g,'&quot;')}">`;
+      html = html.replace(/<base\b[^>]*>/i, '');
+      if (/<head[^>]*>/i.test(html)){
+        return html.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
+      }
+      if (/<html[^>]*>/i.test(html)){
+        return html.replace(/<html([^>]*)>/i, `<html$1><head>${baseTag}</head>`);
+      }
+      return baseTag + html;
+    }
+
+    async function resolveHTML(){
+      if (RAW_HTML && RAW_HTML.trim()) return { type:'html', html:RAW_HTML };
+      if (RAW_URL && RAW_URL.trim()){
+        const res = await fetch(RAW_URL, { mode:'cors', cache:'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        let html = await res.text();
+        html = injectBase(html, baseDirOf(RAW_URL));
+        return { type:'html', html };
+      }
+      return { type:'url', url:'about:blank' };
+    }
+
+    const grid = document.getElementById('grid');
+    const launchBtn = document.getElementById('launchBtn');
+
+    SITES.forEach((site) => {
+      const el = document.createElement('div');
+      el.className = 'site';
+      el.setAttribute('data-name', site.name);
+      el.setAttribute('role', 'button');
+      el.setAttribute('tabindex', '0');
+
+      const img = document.createElement('img');
+      img.src = site.icon;
+      img.alt = site.name;
+      img.onerror = () => {
+        img.remove();
+        el.textContent = site.name.charAt(0);
+        el.style.fontWeight = '600';
+        el.style.fontSize = '18px';
+        el.style.color = 'var(--muted)';
+      };
+      el.appendChild(img);
+
+      const choose = () => {
+        document.querySelectorAll('.site').forEach(s => s.classList.remove('selected'));
+        el.classList.add('selected');
+        selected = site;
+        launchBtn.disabled = false;
+        launchBtn.textContent = 'Launch — ' + site.name;
+      };
+
+      el.addEventListener('click', choose);
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); choose(); }
+      });
+
+      grid.appendChild(el);
+    });
+
+    // Helper script injected into the cloaked document to bind beforeunload
+    const UNLOAD_SCRIPT = `
+      <script>
+        window.addEventListener('beforeunload', function(e) {
+          e.preventDefault();
+          e.returnValue = ''; // Required by modern browsers to trigger the "Leave Site?" modal
+          return '';
+        });
+      <\/script>
+    `;
+
+    function buildCloakDoc(site, target) {
+      const html = (target.type === 'html') ? target.html : '';
+      const frame = `<iframe id="novosFrame"
+    srcdoc="${html.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"
+    allow="fullscreen; autoplay; clipboard-read; clipboard-write; gamepad"
+    referrepolicy="no-referrer"></iframe>`;
+
+      return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${site.title}</title>
+<link rel="icon" href="${site.icon}">
+<style>
+  html,body{height:100%;margin:0;background:#fff;overflow:hidden}
+  iframe{position:fixed;inset:0;width:100vw;height:100vh;border:0}
+</style>
+</head>
+<body>
+  ${frame}
+  ${UNLOAD_SCRIPT}
+  <script>
+    (function(){
+      var STORAGE_KEY='novos_state_v1';
+      var frame=document.getElementById('novosFrame');
+      function sendState(){
+        var raw=null;
+        try{ raw=localStorage.getItem(STORAGE_KEY); }catch(e){}
+        try{
+          frame.contentWindow.postMessage({__novos_restore:true,data:raw},'*');
+        }catch(e){}
+      }
+      frame.addEventListener('load',function(){
+        setTimeout(sendState,200);
+      });
+      window.addEventListener('message',function(e){
+        if(e.data&&e.data.__novos_save){
+          try{ localStorage.setItem(STORAGE_KEY, e.data.data); }catch(err){}
+        }
+        if(e.data&&e.data.__novos_request_restore){
+          sendState();
+        }
+      });
+    })();
+  <\/script>
+</body>
+</html>`;
+    }
+
+    function openInBlobTab(htmlContent) {
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      const win = window.open(blobUrl, '_blank');
+      
+      // Fallback in case popups are blocked
+      if (!win) {
+        document.title = selected.title;
+        const fav = document.getElementById('favicon');
+        if (fav) fav.href = selected.icon;
+        document.open();
+        document.write(htmlContent);
+        document.close();
+      }
+    }
+
+    launchBtn.addEventListener('click', async () => {
+      if (!selected) return;
+      if (!HAS_TARGET) {
+        launchBtn.textContent = 'No target configured';
+        return;
+      }
+
+      try {
+        const target = await resolveHTML();
+        const cloakHtml = buildCloakDoc(selected, target);
+        openInBlobTab(cloakHtml);
+      } catch (e) {
+        alert('Failed to load: ' + String(e && e.message || e));
+      }
+    });
+  </script>
+</body>
+</html>
