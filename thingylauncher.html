@@ -52,7 +52,6 @@
     background:rgba(var(--accent-rgb),0.08);
   }
   .site img{width:30px;height:30px;border-radius:6px;pointer-events:none}
-  /* tooltip */
   .site::after{
     content:attr(data-name);
     position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);
@@ -132,15 +131,14 @@
     }
 
     async function resolveHTML(){
-      if (RAW_HTML && RAW_HTML.trim()) return { type:'html', html:RAW_HTML };
+      if (RAW_HTML && RAW_HTML.trim()) return RAW_HTML;
       if (RAW_URL && RAW_URL.trim()){
         const res = await fetch(RAW_URL, { mode:'cors', cache:'no-store' });
         if (!res.ok) throw new Error('HTTP ' + res.status);
         let html = await res.text();
-        html = injectBase(html, baseDirOf(RAW_URL));
-        return { type:'html', html };
+        return injectBase(html, baseDirOf(RAW_URL));
       }
-      return { type:'url', url:'about:blank' };
+      return '<h1>No target content available</h1>';
     }
 
     const grid = document.getElementById('grid');
@@ -181,67 +179,6 @@
       grid.appendChild(el);
     });
 
-    // Script injected into the parent container within the about:blank window
-    const UNLOAD_SCRIPT = `
-      <script>
-        window.addEventListener('beforeunload', function(e) {
-          e.preventDefault();
-          e.returnValue = ''; // Trigger native browser leave confirmation
-          return '';
-        });
-      <\/script>
-    `;
-
-    function buildCloakDoc(site, target) {
-      const html = (target.type === 'html') ? target.html : '';
-      const frame = `<iframe id="novosFrame"
-    srcdoc="${html.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"
-    allow="fullscreen; autoplay; clipboard-read; clipboard-write; gamepad"
-    referrerpolicy="no-referrer"></iframe>`;
-
-      return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>${site.title}</title>
-<link rel="icon" href="${site.icon}">
-<style>
-  html,body{height:100%;margin:0;background:#fff;overflow:hidden}
-  iframe{position:fixed;inset:0;width:100vw;height:100vh;border:0}
-</style>
-</head>
-<body>
-  ${frame}
-  ${UNLOAD_SCRIPT}
-  <script>
-    (function(){
-      var STORAGE_KEY='novos_state_v1';
-      var frame=document.getElementById('novosFrame');
-      function sendState(){
-        var raw=null;
-        try{ raw=localStorage.getItem(STORAGE_KEY); }catch(e){}
-        try{
-          frame.contentWindow.postMessage({__novos_restore:true,data:raw},'*');
-        }catch(e){}
-      }
-      frame.addEventListener('load',function(){
-        setTimeout(sendState,200);
-      });
-      window.addEventListener('message',function(e){
-        if(e.data&&e.data.__novos_save){
-          try{ localStorage.setItem(STORAGE_KEY, e.data.data); }catch(err){}
-        }
-        if(e.data&&e.data.__novos_request_restore){
-          sendState();
-        }
-      });
-    })();
-  <\/script>
-</body>
-</html>`;
-    }
-
     launchBtn.addEventListener('click', async () => {
       if (!selected) return;
       if (!HAS_TARGET) {
@@ -249,26 +186,37 @@
         return;
       }
 
-      // Immediately open the blank window on click to prevent popup blockers
       const win = window.open('about:blank', '_blank');
 
       try {
-        const target = await resolveHTML();
-        const cloakHtml = buildCloakDoc(selected, target);
+        const rawContent = await resolveHTML();
 
         if (win) {
           const doc = win.document;
           doc.open();
-          doc.write(cloakHtml);
+          doc.write(rawContent);
+
+          doc.title = selected.title;
+          
+          let link = doc.querySelector("link[rel*='icon']");
+          if (!link) {
+            link = doc.createElement('link');
+            link.rel = 'shortcut icon';
+            doc.getElementsByTagName('head')[0]?.appendChild(link);
+          }
+          link.href = selected.icon;
+
+          const script = doc.createElement('script');
+          script.textContent = `
+            window.addEventListener('beforeunload', function(e) {
+              e.preventDefault();
+              e.returnValue = '';
+              return '';
+            });
+          `;
+          doc.body ? doc.body.appendChild(script) : doc.head.appendChild(script);
+
           doc.close();
-        } else {
-          // Fallback if popup blockers prevented window creation
-          document.title = selected.title;
-          const fav = document.getElementById('favicon');
-          if (fav) fav.href = selected.icon;
-          document.open();
-          document.write(cloakHtml);
-          document.close();
         }
       } catch (e) {
         if (win) win.close();
