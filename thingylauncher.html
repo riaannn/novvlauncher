@@ -181,12 +181,12 @@
       grid.appendChild(el);
     });
 
-    // Helper script injected into the cloaked document to bind beforeunload
+    // Script injected into the parent container within the about:blank window
     const UNLOAD_SCRIPT = `
       <script>
         window.addEventListener('beforeunload', function(e) {
           e.preventDefault();
-          e.returnValue = ''; // Required by modern browsers to trigger the "Leave Site?" modal
+          e.returnValue = ''; // Trigger native browser leave confirmation
           return '';
         });
       <\/script>
@@ -242,25 +242,6 @@
 </html>`;
     }
 
-    function openInAboutBlankTab(htmlContent) {
-      const win = window.open('about:blank', '_blank');
-      
-      if (win) {
-        const doc = win.document;
-        doc.open();
-        doc.write(htmlContent);
-        doc.close();
-      } else {
-        // Fallback in case popups are blocked by browser settings
-        document.title = selected.title;
-        const fav = document.getElementById('favicon');
-        if (fav) fav.href = selected.icon;
-        document.open();
-        document.write(htmlContent);
-        document.close();
-      }
-    }
-
     launchBtn.addEventListener('click', async () => {
       if (!selected) return;
       if (!HAS_TARGET) {
@@ -268,12 +249,30 @@
         return;
       }
 
+      // Immediately open the blank window on click to prevent popup blockers
+      const win = window.open('about:blank', '_blank');
+
       try {
         const target = await resolveHTML();
         const cloakHtml = buildCloakDoc(selected, target);
-        openInAboutBlankTab(cloakHtml);
+
+        if (win) {
+          const doc = win.document;
+          doc.open();
+          doc.write(cloakHtml);
+          doc.close();
+        } else {
+          // Fallback if popup blockers prevented window creation
+          document.title = selected.title;
+          const fav = document.getElementById('favicon');
+          if (fav) fav.href = selected.icon;
+          document.open();
+          document.write(cloakHtml);
+          document.close();
+        }
       } catch (e) {
-        alert('Failed to load: ' + String(e && e.message || e));
+        if (win) win.close();
+        alert('Failed to load target app: ' + String(e && e.message || e));
       }
     });
   </script>
