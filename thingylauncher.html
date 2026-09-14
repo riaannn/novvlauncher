@@ -71,13 +71,6 @@
   .launch:hover{filter:brightness(1.1)}
   .launch:active{transform:scale(.98)}
   .launch:disabled{opacity:.45;cursor:not-allowed;filter:none}
-  .explain{margin-top:18px;padding-top:16px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:14px}
-  .explain-row{font-size:11.5px;color:var(--muted);line-height:1.6;display:flex;flex-direction:column;gap:4px}
-  .explain-tag{display:inline-block;width:fit-content;font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;letter-spacing:.02em}
-  .tag-a{background:rgba(124,109,250,0.15);color:#a89bff}
-  .tag-b{background:rgba(74,222,128,0.15);color:#7ee2a0}
-  .explain-row code{background:rgba(255,255,255,0.06);padding:1px 5px;border-radius:4px;font-size:10.5px}
-  .bullet-list {margin-top:2px;padding-left:4px;display:flex;flex-direction:column;gap:2px}
 </style>
 </head>
 <body>
@@ -204,7 +197,7 @@
       const frame = `<iframe id="novosFrame"
     srcdoc="${html.replace(/&/g,'&amp;').replace(/"/g,'&quot;')}"
     allow="fullscreen; autoplay; clipboard-read; clipboard-write; gamepad"
-    referrepolicy="no-referrer"></iframe>`;
+    referrerpolicy="no-referrer"></iframe>`;
 
       return `<!DOCTYPE html>
 <html lang="en">
@@ -249,13 +242,16 @@
 </html>`;
     }
 
-    function openInBlobTab(htmlContent) {
-      const blob = new Blob([htmlContent], { type: 'text/html' });
-      const blobUrl = URL.createObjectURL(blob);
-      const win = window.open(blobUrl, '_blank');
+    function openInAboutBlankTab(htmlContent) {
+      const win = window.open('about:blank', '_blank');
       
-      // Fallback in case popups are blocked
-      if (!win) {
+      if (win) {
+        const doc = win.document;
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
+      } else {
+        // Fallback in case popups are blocked by browser settings
         document.title = selected.title;
         const fav = document.getElementById('favicon');
         if (fav) fav.href = selected.icon;
@@ -275,7 +271,7 @@
       try {
         const target = await resolveHTML();
         const cloakHtml = buildCloakDoc(selected, target);
-        openInBlobTab(cloakHtml);
+        openInAboutBlankTab(cloakHtml);
       } catch (e) {
         alert('Failed to load: ' + String(e && e.message || e));
       }
