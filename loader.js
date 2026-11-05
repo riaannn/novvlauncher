@@ -1,80 +1,84 @@
-const htmlContent = `<!DOCTYPE html>
+const htmlContent = `
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NovOS</title>
+  <title>NovOS Launcher</title>
   <style>
-    body {
+    body, html {
       margin: 0;
-      height: 100vh;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background: #050505;
+      color: #ffffff;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    .landing {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: #050505;
-      color: #fff;
-      font-family: Arial, sans-serif;
+      width: 100%;
+      height: 100%;
     }
     .launch-card {
-      text-align: center;
+      width: min(400px, 90vw);
       padding: 40px;
-      border: 1px solid rgba(255,255,255,0.12);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 20px;
-      background: #111;
+      background: #0b0b0b;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
     }
+    h1 { font-size: 36px; margin-bottom: 10px; }
+    p { color: #888; font-size: 14px; margin-bottom: 30px; text-transform: uppercase; letter-spacing: 2px; }
     .launch-button {
-      padding: 15px 30px;
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      background: #ffffff;
+      color: #050505;
       font-size: 16px;
       font-weight: bold;
-      background: #eee;
-      color: #000;
-      border: none;
-      border-radius: 10px;
       cursor: pointer;
-      margin-top: 20px;
     }
-    .launch-button:hover {
-      background: #fff;
+    .launch-button:hover { background: #d0d0d0; }
+    #frame-container {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
+      background: #000;
     }
+    iframe { width: 100%; height: 100%; border: none; }
   </style>
 </head>
 <body>
-  <div class="launch-card">
-    <h1>NovOS</h1>
-    <p>Cloaking moved to main OS</p>
-    <button class="launch-button" id="launchBtn">Launch →</button>
+  <div class="landing" id="landingScreen">
+    <div class="launch-card">
+      <h1>NovOS</h1>
+      <p>Ready to Launch</p>
+      <button class="launch-button" id="launchBtn">Launch</button>
+    </div>
   </div>
-
+  <div id="frame-container">
+    <iframe id="osFrame" src=""></iframe>
+  </div>
   <script>
-    const RAW_URL = "https://raw.githubusercontent.com/riaannn/NovOS/refs/heads/main/index.html";
-
-    document.getElementById("launchBtn").addEventListener("click", async () => {
-      const btn = document.getElementById("launchBtn");
-      btn.textContent = "Launching...";
-      
-      const win = window.open("about:blank", "_blank");
-
-      try {
-        const response = await fetch(RAW_URL, { mode: "cors", cache: "no-store" });
-        if (!response.ok) throw new Error("HTTP " + response.status);
-        const html = await response.text();
-
-        if (win) {
-          win.document.open();
-          win.document.write(html);
-          win.document.title = "NovOS";
-          win.document.close();
-        }
-        btn.textContent = "Launch →";
-      } catch (error) {
-        if (win) win.close();
-        alert("Failed to load NovOS: " + error.message);
-        btn.textContent = "Launch →";
-      }
+    document.getElementById("launchBtn").addEventListener("click", () => {
+      document.getElementById("osFrame").src = "https://riaannn.github.io/NovOS";
+      document.getElementById("landingScreen").style.display = "none";
+      document.getElementById("frame-container").style.display = "block";
     });
   </script>
 </body>
-</html>`;
+</html>
+`;
 
 document.open();
 document.write(htmlContent);
