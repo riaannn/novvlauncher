@@ -3,216 +3,110 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NovOS</title>
-
+  <title>NovOS Launcher</title>
   <style>
-    :root {
-      --black: #050505;
-      --dark: #0b0b0b;
-      --gray: #151515;
-      --gray2: #242424;
-      --silver: #bcbcbc;
-      --light: #e8e8e8;
-      --white: #ffffff;
-    }
-
-    * {
-      box-sizing: border-box;
+    body, html {
       margin: 0;
       padding: 0;
-    }
-
-    html,
-    body {
       width: 100%;
       height: 100%;
-      overflow: hidden;
-    }
-
-    body {
+      background: #050505;
+      color: #ffffff;
       font-family: Arial, Helvetica, sans-serif;
-      background:
-        radial-gradient(
-          circle at 50% 40%,
-          #202020 0%,
-          #0d0d0d 38%,
-          #050505 75%,
-          #000000 100%
-        );
-      color: var(--white);
-    }
-
-    .background {
-      position: fixed;
-      inset: 0;
       overflow: hidden;
-      pointer-events: none;
     }
 
-    .glow {
-      position: absolute;
-      width: 600px;
-      height: 600px;
-      left: 50%;
-      top: 45%;
-      transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.025) 35%, transparent 70%);
-      filter: blur(20px);
-    }
-
-    .page {
-      position: relative;
-      z-index: 2;
-      width: 100%;
-      height: 100%;
+    .landing {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 30px;
+      width: 100%;
+      height: 100%;
     }
 
     .launch-card {
-      position: relative;
-      width: min(620px, 94vw);
-      padding: 55px 45px 45px;
+      width: min(400px, 90vw);
+      padding: 40px;
       border: 1px solid rgba(255, 255, 255, 0.12);
-      border-radius: 28px;
-      background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025));
-      backdrop-filter: blur(25px);
-      -webkit-backdrop-filter: blur(25px);
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      background: #0b0b0b;
       text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
     }
 
-    .logo-container {
-      position: relative;
-      width: 260px;
-      height: 260px;
-      margin: 0 auto 18px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .globe {
-      position: relative;
-      width: 190px;
-      height: 190px;
-      border-radius: 50%;
-      border: 3px solid rgba(255, 255, 255, 0.82);
-      background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.045) 48%, rgba(0, 0, 0, 0.45) 100%);
-    }
-
-    .title {
-      font-size: 52px;
-      font-weight: 700;
-      letter-spacing: -2px;
+    h1 {
+      font-size: 36px;
       margin-bottom: 10px;
-      background: linear-gradient(180deg, #ffffff, #8c8c8c);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
     }
 
-    .subtitle {
-      color: #8d8d8d;
-      font-size: 15px;
-      letter-spacing: 3px;
+    p {
+      color: #888;
+      font-size: 14px;
+      margin-bottom: 30px;
       text-transform: uppercase;
-      margin-bottom: 38px;
+      letter-spacing: 2px;
     }
 
-    /* Simple working button - active immediately */
     .launch-button {
-      position: relative;
       width: 100%;
-      height: 58px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 15px;
-      background: linear-gradient(135deg, #eeeeee, #a8a8a8);
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      background: #ffffff;
       color: #050505;
       font-size: 16px;
-      font-weight: 700;
-      letter-spacing: 1px;
+      font-weight: bold;
       cursor: pointer;
-      transition: filter 0.2s ease;
+      transition: background 0.2s;
     }
 
     .launch-button:hover {
-      filter: brightness(1.08);
+      background: #d0d0d0;
     }
 
-    .footer {
-      margin-top: 25px;
-      color: #555;
-      font-size: 11px;
-      letter-spacing: 1px;
+    #frame-container {
+      display: none;
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
+      background: #000;
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
     }
   </style>
 </head>
-
 <body>
 
-  <div class="background">
-    <div class="glow"></div>
+  <div class="landing" id="landingScreen">
+    <div class="launch-card">
+      <h1>NovOS</h1>
+      <p>Ready to Launch</p>
+      <button class="launch-button" id="launchBtn">Launch</button>
+    </div>
   </div>
 
-  <main class="page">
-    <section class="launch-card">
-      <div class="logo-container">
-        <div class="globe"></div>
-      </div>
-
-      <h1 class="title">NovOS</h1>
-      <p class="subtitle">Cloaking moved to main OS</p>
-
-      <!-- Button is enabled immediately, says Launch -->
-      <button class="launch-button" id="launchBtn">
-        Launch →
-      </button>
-
-      <div class="footer">A FULLY VIBECODED OS</div>
-    </section>
-  </main>
+  <div id="frame-container">
+    <iframe id="osFrame" src=""></iframe>
+  </div>
 
   <script>
-    const RAW_URL = "https://raw.githubusercontent.com/riaannn/NovOS/refs/heads/main/index.html";
+    document.getElementById("launchBtn").addEventListener("click", () => {
+      const landing = document.getElementById("landingScreen");
+      const frameContainer = document.getElementById("frame-container");
+      const osFrame = document.getElementById("osFrame");
 
-    document.getElementById("launchBtn").addEventListener("click", async () => {
-      const btn = document.getElementById("launchBtn");
-      btn.textContent = "Launching...";
+      // Load the website into the iframe
+      osFrame.src = "https://riaannn.github.io/NovOS";
 
-      // Open window immediately to prevent popup blockers
-      const win = window.open("about:blank", "_blank");
-
-      try {
-        const response = await fetch(RAW_URL, {
-          mode: "cors",
-          cache: "no-store"
-        });
-
-        if (!response.ok) {
-          throw new Error("HTTP " + response.status);
-        }
-
-        const html = await response.text();
-
-        if (win) {
-          win.document.open();
-          win.document.write(html);
-          win.document.title = "NovOS";
-          win.document.close();
-        }
-
-        btn.textContent = "Launch →";
-      } catch (error) {
-        if (win) {
-          win.close();
-        }
-        alert("Failed to load NovOS: " + error.message);
-        btn.textContent = "Launch →";
-      }
+      // Hide landing card and show the iframe fullscreen
+      landing.style.display = "none";
+      frameContainer.style.display = "block";
     });
   </script>
 
