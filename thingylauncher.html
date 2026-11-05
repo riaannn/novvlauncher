@@ -76,10 +76,21 @@
   </div>
 
   <script>
-    const RAW_URL = "https://raw.githubusercontent.com/riaannn/NovOS/main/index.html";
+    // Paste your entire NovOS index.html code inside this string:
+    const novOSCode = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NovOS</title>
+</head>
+<body style="background:#111; color:#fff; font-family:sans-serif; text-align:center; padding-top:20vh;">
+  <h1>NovOS is Running Successfully!</h1>
+  <p>Your local storage and progress are now locked to this esm.sh URL origin.</p>
+</body>
+</html>`;
 
     document.getElementById("launchBtn").addEventListener("click", () => {
-      // 1. OPEN THE WINDOW SYNCHRONOUSLY RIGHT AWAY (bypasses popup blocker completely)
+      // 1. Open about:blank synchronously to bypass popup blockers
       const newWindow = window.open("about:blank", "_blank");
 
       if (!newWindow) {
@@ -87,32 +98,17 @@
         return;
       }
 
-      // Show a temporary loading message inside the new blank tab while it fetches
-      newWindow.document.write("<h2 style='color:white;background:black;font-family:sans-serif;text-align:center;padding-top:20vh;'>Loading NovOS...</h2>");
+      // 2. Write the HTML directly into the new tab
+      newWindow.document.open();
+      newWindow.document.write(novOSCode);
+      newWindow.document.title = "NovOS";
+      newWindow.document.close();
 
-      // 2. Fetch the code in the background and write it once ready
-      fetch(RAW_URL, { cache: "no-store" })
-        .then(response => {
-          if (!response.ok) throw new Error("HTTP error " + response.status);
-          return response.text();
-        })
-        .then(html => {
-          newWindow.document.open();
-          newWindow.document.write(html);
-          newWindow.document.title = "NovOS";
-          newWindow.document.close();
-
-          // 3. Add beforeunload persistence prompt
-          newWindow.addEventListener("beforeunload", (event) => {
-            event.preventDefault();
-            event.returnValue = "";
-          });
-        })
-        .catch(error => {
-          newWindow.document.open();
-          newWindow.document.write("<h2 style='color:red;background:black;font-family:sans-serif;text-align:center;padding-top:20vh;'>Failed to load NovOS: " + error.message + "</h2>");
-          newWindow.document.close();
-        });
+      // 3. Add beforeunload persistence prompt
+      newWindow.addEventListener("beforeunload", (event) => {
+        event.preventDefault();
+        event.returnValue = "";
+      });
     });
   </script>
 
