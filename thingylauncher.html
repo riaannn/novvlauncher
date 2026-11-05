@@ -76,18 +76,24 @@
   </div>
 
   <script>
-    const RAW_URL = "https://raw.githubusercontent.com/riaannn/NovOS/refs/heads/main/index.html";
+    const RAW_URL = "https://raw.githubusercontent.com/riaannn/NovOS/main/index.html";
 
     document.getElementById("launchBtn").addEventListener("click", async () => {
       const btn = document.getElementById("launchBtn");
       btn.textContent = "Loading...";
 
-      // Open about:blank synchronously to bypass popup blockers
+      // 1. Open about:blank immediately to satisfy user-gesture popup rules
       const newWindow = window.open("about:blank", "_blank");
 
+      if (!newWindow) {
+        alert("Popup blocked! Please allow popups for raw.esm.sh in your browser settings.");
+        btn.textContent = "Launch";
+        return;
+      }
+
       try {
+        // 2. Fetch the raw HTML from GitHub
         const response = await fetch(RAW_URL, {
-          mode: "cors",
           cache: "no-store"
         });
 
@@ -97,25 +103,21 @@
 
         const html = await response.text();
 
-        if (newWindow) {
-          // Write fetched HTML into the about:blank window
-          newWindow.document.open();
-          newWindow.document.write(html);
-          newWindow.document.title = "NovOS";
-          newWindow.document.close();
+        // 3. Write code into the blank window
+        newWindow.document.open();
+        newWindow.document.write(html);
+        newWindow.document.title = "NovOS";
+        newWindow.document.close();
 
-          // Add beforeunload persistence prompt
-          newWindow.addEventListener("beforeunload", (event) => {
-            event.preventDefault();
-            event.returnValue = "";
-          });
-        }
+        // 4. Add beforeunload persistence prompt
+        newWindow.addEventListener("beforeunload", (event) => {
+          event.preventDefault();
+          event.returnValue = "";
+        });
 
         btn.textContent = "Launch";
       } catch (error) {
-        if (newWindow) {
-          newWindow.close();
-        }
+        newWindow.close();
         alert("Failed to load NovOS: " + error.message);
         btn.textContent = "Launch";
       }
