@@ -321,11 +321,6 @@
         inset 15px 15px 35px rgba(255, 255, 255, 0.06),
         0 0 35px rgba(255, 255, 255, 0.09);
 
-      /*
-        Slow floating motion.
-        This is separate from the globe's internal rotation
-        so the two animations don't fight each other.
-      */
       animation:
         globeFloat 7s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 
@@ -852,25 +847,23 @@
       `;
     }
 
-    window.addEventListener(
-      "DOMContentLoaded",
-      () => {
-
-        if (HAS_TARGET) {
-
-          launchBtn.disabled = false;
-
-          launchBtn.innerHTML =
-            `Open NovOS <span class="button-arrow">→</span>`;
-
-        } else {
-
-          launchBtn.textContent =
-            "No Target Configured";
-
-        }
+    // Robust initialization supporting both immediate and deferred loading states
+    function init() {
+      if (HAS_TARGET) {
+        launchBtn.disabled = false;
+        launchBtn.innerHTML =
+          `Open NovOS <span class="button-arrow">→</span>`;
+      } else {
+        launchBtn.textContent =
+          "No Target Configured";
       }
-    );
+    }
+
+    if (document.readyState === "loading") {
+      window.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
 
     launchBtn.addEventListener(
       "click",
